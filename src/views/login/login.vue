@@ -1,98 +1,99 @@
 <template>
   <div>
-    <div class="login-wrap" v-show="showLogin">
-      <h3>登录</h3>
-      <p v-show="showTishi">{{ tishi }}</p>
-      <input type="text" placeholder="请输入用户名" v-model="username">
-      <input type="password" placeholder="请输入密码" v-model="password">
-      <button v-on:click="login">登录</button>
-    </div>
+    <el-form ref="loginForm" :model="form" :rules="rules" label-width="80px" class="login-box">
+      <h3 class="login-title">欢迎登录DATAAI</h3>
+      <el-form-item label="账号" prop="username">
+        <el-input type="text" placeholder="请输入账号" autocomplete="off" v-model="form.username"/>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input type="password" placeholder="请输入密码" autocomplete="off" v-model="form.password"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="login('loginForm')">登录</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-dialog
+        title="温馨提示"
+        :visible.sync="dialogVisible"
+        width="30%"
+        :before-close="handleClose">
+      <span>{{diaMessage}}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
-<style>
-.login-wrap {
+<style lang="scss" scoped>
+.login-box {
+  border: 1px solid #DCDFE6;
+  width: 350px;
+  margin: 180px auto;
+  padding: 35px 35px 15px 35px;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  box-shadow: 0 0 25px #909399;
+}
+
+.login-title {
   text-align: center;
-}
-
-input {
-  display: block;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  margin: 0 auto 10px;
-  outline: none;
-  border: 1px solid #888;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-p {
-  color: red;
-}
-
-button {
-  display: block;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  margin: 0 auto 5px;
-  border: none;
-  background-color: #41b883;
-  color: #fff;
-  font-size: 16px;
-}
-
-span {
-  cursor: pointer;
-}
-
-span:hover {
-  color: #41b883;
+  margin: 0 auto 40px auto;
+  color: #303133;
 }
 </style>
 
 <script>
 import * as types from '../../store/types'
+
 export default {
   data() {
     return {
-      username: '',
-      password: '',
+      form: {
+        username: '',
+        password: '',
+      },
+      diaMessage: "",
+      rules: {
+        username: [
+          {required: true, message: '账号不可为空', trigger: 'blur'}
+        ],
+        password: [
+          {required: true, message: '密码不可为空', trigger: 'blur'}
+        ]
+      },
+      dialogVisible: false,
       token: '',
-      newUsername: '',
-      newPassword: '',
-      tishi: '',
-      showTishi: false,
-      showLogin: true,
-      showRegister: false
     }
   },
   mounted() {
     this.$store.commit(types.TITLE, 'Login')
   },
   methods: {
-    login() {
-      if (this.username === "" || this.password === "") {
-        alert("请输入用户名或密码")
-      } else {
-        let data = {'name': this.username, 'password': this.password}
-        this.axios.post('http://dataai.pro/api/login', data).then((res) => {
-          console.log(res.data)
-          if(res.data.status === 'success') {
-            this.tishi = "登录成功"
-            this.showTishi = true
-            setTimeout(function () {
+    login(formName) {
+      this.$refs[formName].validate((valid) => {
+        if(valid) {
+          let data = {'name': this.form.username, 'password': this.form.password}
+          this.axios.post('http://dataai.pro/api/login', data).then((res) => {
+            if (res.data.status === 'success') {
               this.$store.commit(types.LOGIN, res.data.data.access_token)
               let redirect = decodeURIComponent(this.$route.query.redirect || '/');
               this.$router.push({path: redirect})
-            }.bind(this), 500)
-          }else{
-            this.tishi = res.data.status
-            this.showTishi = true
-          }
-        })
-      }
+            } else {
+              this.dialogVisible = true
+              this.diaMessage = res.data.status
+            }
+          })
+        }else{
+          this.dialogVisible = true;
+          return false;
+        }
+      })
+    },
+    handleClose() {
+      console.log("close")
     }
   }
 }
