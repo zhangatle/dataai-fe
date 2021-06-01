@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <div class="logout">
+      <el-button type="primary" @click="logout">登出</el-button>
+    </div>
     <el-row>
       <el-col :offset="10" :span="4">
         <img src="../../assets/images/logo.png" class="logo" alt="dataai" />
@@ -60,6 +63,8 @@
 
 <script>
 
+import * as types from "../../store/types";
+
 export default {
   data() {
     return {
@@ -75,6 +80,15 @@ export default {
     this.getHotSearch()
   },
   methods: {
+    logout() {
+      console.log('asdf')
+      this.axios.get('http://dataai.pro/api/logout').then((res) => {
+        if (res.data.status === 'success') {
+          console.log(res.data)
+          this.$store.commit(types.LOGIN, "")
+          this.$router.push({path: 'login'})
+        }
+      })},
     focus() {
       this.isFocus = true;
       this.historySearchList = JSON.parse(localStorage.getItem("searchHistory")) == null ? [] : JSON.parse(localStorage.getItem("searchHistory"))
@@ -106,7 +120,6 @@ export default {
     toSearch(value) {
       this.$router.push({ name: 'result', params: { q: value }})
     },
-    // 处理搜索
     searchHandler() {
       let exist =
           this.historySearchList.filter(value => {
@@ -179,5 +192,10 @@ export default {
   height: 300px;
   margin-top: 0;
   padding-bottom: 20px;
+}
+.logout{
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 </style>

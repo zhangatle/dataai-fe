@@ -1,5 +1,8 @@
 <template>
   <div id="main">
+    <div class="logout" style="z-index: 99">
+      <el-button type="primary" @click="logout">登出</el-button>
+    </div>
     <el-container>
       <el-header>
         <el-row>
@@ -103,6 +106,8 @@
 </template>
 
 <script>
+import * as types from "../../store/types";
+
 export default {
   name: "Result",
   mounted() {
@@ -144,28 +149,44 @@ export default {
       this.page = page
       this.addSearch()
     },
+    logout() {
+      console.log('asdf')
+      this.axios.get('http://dataai.pro/api/logout').then((res) => {
+        if (res.data.status === 'success') {
+          console.log(res.data)
+          this.$store.commit(types.LOGIN, "")
+          this.$router.push({path: 'login'})
+        }
+      })},
     addSearch() {
       if (this.keywords && this.keywords.length >= 2) {
-        console.log(123)
+        let exist =
+            this.mySearchList.filter(value => {
+              return value === this.keywords;
+            }).length === 0 ? false : true;
+        if (!exist) {
+          this.mySearchList.push(this.keywords);
+          localStorage.setItem("searchHistory", JSON.stringify(this.mySearchList))
+        }
+        let url = "http://dataai.pro/api/search?q=" + this.keywords + "&p="+this.page;
+        this.axios.get(url).then(
+            res => {
+              let data = res.data.data;
+              this.count = data.count
+              this.hit_list = data.hit_list
+              // this.keywords = data.keywords
+              this.last_seconds = data.last_seconds
+              this.page = data.page
+              this.page_nums = data.page_nums
+              // this.hot_search = data.hot_search
+              this.total = data.total
+            }
+        ).catch(
+            error => {
+              console.log(error)
+            }
+        )
       }
-      let url = "http://dataai.pro/api/search?q=" + this.keywords + "&p="+this.page;
-      this.axios.get(url).then(
-          res => {
-            let data = res.data.data;
-            this.count = data.count
-            this.hit_list = data.hit_list
-            // this.keywords = data.keywords
-            this.last_seconds = data.last_seconds
-            this.page = data.page
-            this.page_nums = data.page_nums
-            // this.hot_search = data.hot_search
-            this.total = data.total
-          }
-      ).catch(
-          error => {
-            console.log(error)
-          }
-      )
     }
   }
 }
@@ -265,6 +286,12 @@ export default {
 }
 .pagination{
   float: left;
+}
+
+.logout{
+  position: absolute;
+  right: 20px;
+  top: 20px;
 }
 
 </style>
