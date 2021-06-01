@@ -13,32 +13,32 @@
         <p class="resultTotal">
           <span class="info">找到约&nbsp;<span class="totalResult">{{ total }}</span>&nbsp;条结果(用时<span class="time">{{ last_seconds }}</span>秒)，共约<span class="totalPage">{{page_nums }}</span>页</span>
         </p>
-        <div class="resultList" v-for="{item, index} in hit_list" :key="index">
-          <div class="resultItem">
+        <div class="resultList">
+          <div class="resultItem"  v-for="(item,index) in hit_list" :key="index">
             <div class="itemHead">
-                                    <span class="fileType">
-                                        <span class="label">来源：</span>
-                                        <span class="value">{{ item.nickname }}({{ item.wxid }})</span>
-                                    </span>
+              <span class="fileType">
+                <span class="label">来源：</span>
+                <span class="value">{{ item.nickname }}({{ item.wxid }})</span>
+              </span>
               <span class="dependValue">
-                                        <span class="label">得分：</span>
-                                        <span class="value">{{ item.score }}</span>
-                                    </span>
+                <span class="label">得分：</span>
+                <span class="value">{{ item.score }}</span>
+              </span>
             </div>
-            <div class="itemBody">{{ item.content }}}</div>
+            <div class="itemBody" v-html="item.content"></div>
             <div class="itemFoot">
-                                    <span class="info">
-                                        <label>发送人：</label>
-                                        <span class="value">{{ item.message_sender }}</span>
-                                    </span>
               <span class="info">
-                                        <label>群昵称：</label>
-                                        <span class="value">{{ item.message_group }}</span>
-                                    </span>
+                <label>发送人：</label>
+                <span class="value">{{ item.message_sender }}</span>
+              </span>
               <span class="info">
-                                        <label>发布时间：</label>
-                                        <span class="value">{{ item.create_date }}</span>
-                                    </span>
+                <label>群昵称：</label>
+                <span class="value">{{ item.message_group }}</span>
+              </span>
+              <span class="info">
+                <label>发布时间：</label>
+                <span class="value">{{ item.create_date }}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -78,6 +78,7 @@ export default {
     return {
       keywords: "",
       total: 0,
+      page: 1,
       page_nums: 0,
       last_seconds: 0,
       hit_list: [],
@@ -115,8 +116,6 @@ export default {
         url = "http://dataai.pro/api/result?q=" + this.searchArr[i];
         this.mySearch.push({"url": url, "keywords": this.searchArr[i]})
       }
-      console.log("vvv")
-      console.log(this.mySearch)
     },
     addSearch() {
       if (this.keywords.length >= 2) {
@@ -125,24 +124,35 @@ export default {
         //去重后把数组存储到浏览器localStorage
         localStorage.search = this.searchArr;
         //然后再把搜索内容显示出来
-        this.MapSearchArr();
+        this.mapSearchArr();
       }
       let url = "http://dataai.pro/api/search?q=" + this.keywords;
-      this.axios.post(url).then(
+      this.axios.get(url).then(
           res => {
-            console.log(res)
+            let data = res.data.data;
+            this.count = data.count
+            this.hit_list = data.hit_list
+            this.keywords = data.keywords
+            this.last_seconds = data.last_seconds
+            this.page = data.page
+            this.page_nums = data.page_nums
+            this.hot_search = data.hot_search
+            this.total = data.total
           }
       ).catch(
           error => {
             console.log(error)
           }
       )
-      // window.location.href = "http://dataai.pro/result?q=" + this.keywords
     }
   }
 }
 </script>
-
+<style>
+.keyword{
+  color: #d90909;
+}
+</style>
 <style scoped lang="scss">
 .container {
   margin: 20px 100px 0;
