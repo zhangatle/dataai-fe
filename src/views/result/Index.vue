@@ -174,11 +174,11 @@ export default {
               let data = res.data.data;
               this.count = data.count
               this.hit_list = data.hit_list
-              // this.keywords = data.keywords
+              this.keywords = data.keywords
               this.last_seconds = data.last_seconds
               this.page = data.page
               this.page_nums = data.page_nums
-              // this.hot_search = data.hot_search
+              this.hot_search = data.hot_search
               this.total = data.total
             }
         ).catch(
