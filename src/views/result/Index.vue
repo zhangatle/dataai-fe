@@ -1,6 +1,6 @@
 <template>
-  <el-container>
-    <div style="height: 100%">
+  <div id="main">
+    <el-container>
       <el-header>
         <el-row>
           <el-col :span="2">
@@ -18,75 +18,71 @@
         </el-row>
       </el-header>
       <el-container>
-        <el-container>
-          <el-main>
-            <el-row>
-              <el-col :span="10" :offset="2">
+        <el-main>
+          <el-row>
+            <el-col :span="10" :offset="2">
               <span class="summary">找到约&nbsp;<span class="totalResult">{{ total }}</span>&nbsp;条结果(用时<span
                   class="time">{{ last_seconds }}</span>秒)，共约<span class="totalPage">{{ page_nums }}</span>页</span>
-              </el-col>
-            </el-row>
-            <el-row>
-              <el-col :offset="2">
-                <div class="resultList">
-                  <div class="resultItem" v-for="(item,index) in hit_list" :key="index">
-                    <div class="itemHead">
-                            <span class="fileType">
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :offset="2">
+              <div class="resultList">
+                <div class="resultItem" v-for="(item,index) in hit_list" :key="index">
+                  <div class="itemHead">
+                            <span class="from">
                               <span class="label">来源：</span>
                               <span class="value">{{ item.nickname }}({{ item.wxid }})</span>
                             </span>
-                      <span class="dependValue">
+                    <span class="dependValue">
                               <span class="label">得分：</span>
                               <span class="value">{{ item.score }}</span>
                             </span>
-                    </div>
-                    <div class="itemBody" v-html="item.content"></div>
-                    <div class="itemFoot">
+                  </div>
+                  <div class="itemBody" v-html="item.content"></div>
+                  <div class="itemFoot">
                             <span class="info">
                               <label>发送人：</label>
                               <span class="value">{{ item.message_sender }}</span>
                             </span>
-                      <span class="info">
+                    <span class="info">
                               <label>群昵称：</label>
                               <span class="value">{{ item.message_group }}</span>
                             </span>
-                      <span class="info">
+                    <span class="info">
                               <label>发布时间：</label>
                               <span class="value">{{ item.create_date }}</span>
                             </span>
-                    </div>
                   </div>
                 </div>
-              </el-col>
-            </el-row>
-          </el-main>
-        </el-container>
+              </div>
+            </el-col>
+          </el-row>
+        </el-main>
         <el-aside width="300px">
           <div class="historyArea">
             <div class="hotSearch">
               <h6>热门搜索</h6>
               <div class="historyList">
-              <span  v-for="(item, index) in hot_search" :key="index">
-                <el-link href="/">{{ item }}</el-link><el-divider></el-divider>
-              </span>
+              <p  v-for="(item, index) in hotSearchList" :key="index" @click="changeKeywords(item)">
+                {{item}}
+              </p>
               </div>
             </div>
             <div class="mySearch">
               <h6>我的搜索</h6>
               <div class="historyList">
-              <span  v-for="(item, index) in searchArr" :key="index">
-                <el-link href="/">{{ item }}</el-link><el-divider></el-divider>
-              </span>
+              <p  v-for="(item, index) in mySearchList" :key="index" @click="changeKeywords(item)">
+                {{item}}
+              </p>
               </div>
             </div>
           </div>
         </el-aside>
       </el-container>
-    </div>
-    <el-footer>
-      <div class="pagination">
+      <el-footer>
         <el-row>
-          <el-col :offset="2">
+          <el-col align="left" :offset="2">
             <el-pagination
                 background
                 layout="prev, pager, next"
@@ -97,21 +93,22 @@
             </el-pagination>
           </el-col>
         </el-row>
-      </div>
-      <div class="footer">
-        Copyright 版权所有 E-mail:search@dataai.cn
-      </div>
-    </el-footer>
-  </el-container>
+        <div class="footer">
+          Copyright 版权所有 E-mail:search@dataai.cn
+        </div>
+      </el-footer>
+    </el-container>
+
+  </div>
 </template>
 
 <script>
-
 export default {
   name: "Result",
   mounted() {
     this.getQuery();
     this.addSearch();
+    this.getSearchList();
   },
   data() {
     return {
@@ -121,8 +118,8 @@ export default {
       page_nums: 0,
       last_seconds: 0,
       hit_list: [],
-      hot_search: ["热门词"],
-      searchArr: ["第一"],
+      hotSearchList: ["热门词"],
+      mySearchList: ["第一"],
     }
   },
 
@@ -130,12 +127,25 @@ export default {
     getQuery() {
       this.keywords = this.$route.params.q;
     },
+    getSearchList() {
+      this.axios.get('http://dataai.pro/api/hot').then((res) => {
+        console.log(res.data)
+        if (res.data.status === 'success') {
+          this.hotSearchList = res.data.data
+        }
+      })
+      this.mySearchList = JSON.parse(localStorage.getItem("searchHistory")) == null ? [] : JSON.parse(localStorage.getItem("searchHistory"))
+    },
+    changeKeywords(keywords) {
+      this.keywords = keywords
+      this.addSearch()
+    },
     changePage(page) {
       this.page = page
       this.addSearch()
     },
     addSearch() {
-      if (this.keywords.length >= 2) {
+      if (this.keywords && this.keywords.length >= 2) {
         console.log(123)
       }
       let url = "http://dataai.pro/api/search?q=" + this.keywords + "&p="+this.page;
@@ -148,7 +158,6 @@ export default {
             this.last_seconds = data.last_seconds
             this.page = data.page
             this.page_nums = data.page_nums
-            console.log(data.page_nums)
             // this.hot_search = data.hot_search
             this.total = data.total
           }
@@ -162,87 +171,100 @@ export default {
 }
 </script>
 <style>
-.keyword {
-  color: #d90909;
+.keyword{
+  color: red;
 }
 </style>
-<style scoped lang="scss">
-.logo{
-  width: 100px;
-  height: 40px;
+<style lang="scss" scoped>
+#main {
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  .el-container {
+    min-height: 100%;
+  }
+  .el-header{
+    .logo{
+      width: 100px;
+      height: 40px;
+    }
+  }
+
+  .el-header, .el-footer {
+    color: #333;
+    text-align: center;
+    height: 60px !important;
+  }
+
+  .el-aside {
+    color: #333;
+    text-align: center;
+    line-height: 20px;
+  }
+
+  .el-main {
+    .summary{
+      color: gray;
+    }
+    .resultList {
+      margin-top: 10px;
+      .resultItem {
+        padding-bottom: 10px;
+      }
+      .itemHead {
+        margin-bottom: 5px;
+        color: #767676;
+        font-size: 14px;
+        .keyword {
+          color: #d90909;
+        }
+        .value {
+          color: #4584bc;
+        }
+        .from {
+          margin-right: 10px;
+        }
+      }
+      .itemBody {
+        margin-bottom: 5px;
+        line-height: 18px;
+        font-size: 18px;
+        width: 90%;
+      }
+
+      .itemFoot {
+        margin-bottom: 20px;
+        font-size: 14px;
+        .info {
+          margin-right: 10px;
+        }
+        .value {
+          color: #4584bc
+        }
+      }
+    }
+  }
 }
-.summary{
-  color: gray;
-}
-.resultList {
-  margin-top: 10px;
-  .resultItem {
-    padding-bottom: 20px;
-  }
-
-  .itemHead {
-    margin-bottom: 5px;
-    color: #767676;
-    font-size: 12px;
-
-    .keyword {
-      color: #d90909;
-    }
-
-    a.title {
-      font-size: 16px;
-      color: #0080cc;
-      text-decoration: underline;
-    }
-
-    .value {
-      color: #4584bc;
-    }
-
-    .divsion {
-      margin: 0 5px;
-    }
-
-    .fileType {
-      margin-right: 10px;
-    }
-  }
-
-  .itemBody {
-    margin-bottom: 5px;
-    line-height: 18px;
-    width: 90%;
-  }
-
-  .itemFoot {
-    margin-bottom: 20px;
-    font-size: 12px;
-
-    .info {
-      margin-right: 10px;
-    }
-
-    .value {
-      color: #4584bc
-    }
-  }
-}
-
 .footer{
   text-align: center;
 }
 
 .historyArea{
-  position: absolute;
-  right: 100px;
-  top: 100px;
-  width: 200px;
+  text-align: left;
   h6{
-    font-size: 18px;
+    font-size: 20px;
   }
-  .el-link{
+  p{
+    cursor: pointer;
     color: #0080cc;
     font-size: 16px;
+    height: 20px;
+    line-height: 20px;
   }
 }
+.pagination{
+  float: left;
+}
+
 </style>

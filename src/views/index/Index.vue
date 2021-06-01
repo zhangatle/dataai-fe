@@ -39,7 +39,15 @@
                 style="margin-right:5px; margin-bottom:5px;"
             >{{search}}</el-tag>
             <dt class="search-title">热门搜索</dt>
-            <dd v-for="search in hotSearchList" @click="toSearch(search)" :key="search.id">{{search}}</dd>
+            <el-tag
+                v-for="(search, index) in hotSearchList"
+                :key="index"
+                closable
+                :type="search"
+                @click="toSearch(search)"
+                @close="closeHandler(search)"
+                style="margin-right:5px; margin-bottom:5px;"
+            >{{search}}</el-tag>
           </dl>
           <dl v-if="isSearchList">
             <dd v-for="search in searchList" @click="toSearch(search)" :key="search.id">{{search}}</dd>
