@@ -123,8 +123,8 @@ export default {
       page_nums: 0,
       last_seconds: 0,
       hit_list: [],
-      hotSearchList: ["热门词"],
-      mySearchList: ["第一"],
+      hotSearchList: ["暂无热门词"],
+      mySearchList: ["暂无历史搜索"],
     }
   },
 
@@ -134,7 +134,6 @@ export default {
     },
     getSearchList() {
       this.axios.get('http://dataai.pro/api/hot').then((res) => {
-        console.log(res.data)
         if (res.data.status === 'success') {
           this.hotSearchList = res.data.data
         }
@@ -172,7 +171,6 @@ export default {
         this.axios.get(url).then(
             res => {
               let data = res.data.data;
-              this.count = data.count
               this.hit_list = data.hit_list
               this.keywords = data.keywords
               this.last_seconds = data.last_seconds
